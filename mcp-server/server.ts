@@ -742,7 +742,7 @@ export function createVanBuilderServer(): McpServer {
           const created = ops.addDef(project, {
             name: row.item,
             category,
-            dims: dimsGiven ? { w: row.w!, d: row.d!, h: row.h! } : { w: 12, d: 12, h: 12 },
+            dims: dimsGiven ? { w: row.w!, d: row.d!, h: row.h! } : { w: 305, d: 305, h: 305 },
             mountSurface,
             estCost: row.cost ?? undefined,
             status: inferredStatus,
@@ -757,7 +757,7 @@ export function createVanBuilderServer(): McpServer {
           project = created.project;
           def = project.defs.find((d) => d.id === created.id)!;
           dimsArePlaceholder = !dimsGiven;
-          if (dimsArePlaceholder) warnings.push(`"${row.item}": no dims given — created with a 12x12x12" placeholder footprint.`);
+          if (dimsArePlaceholder) warnings.push(`"${row.item}": no dims given — created with a 305x305x305 mm placeholder footprint.`);
           createdDefs.push(describeDef(project, def));
         }
 
@@ -775,7 +775,7 @@ export function createVanBuilderServer(): McpServer {
         }
 
         const missing = [
-          dimsArePlaceholder ? 'dims (currently a 12x12x12" placeholder)' : null,
+          dimsArePlaceholder ? 'dims (currently a 305x305x305 mm placeholder)' : null,
           finalDef.estCost == null ? 'cost' : null,
           (finalDef.status ?? 'final') !== 'final' ? 'final name/status confirmation' : null,
         ].filter((m): m is string => m !== null);

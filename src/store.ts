@@ -3,9 +3,27 @@ import type { CameraView, ComponentDef, OverlapMatrix, PlacedInstance, ProjectSt
 import { DEFAULT_DEFS, DEFAULT_SHELL, buildDefaultOverlapMatrix } from './defaultData';
 import { type Clearances, type Violation } from './geometry';
 import * as ops from './projectOps';
+import type { DisplayUnit } from './lib/units';
 
 const STORAGE_KEY = 'van-builder-project-v1';
 export const GRID_SNAP = ops.GRID_SNAP;
+
+const DISPLAY_UNIT_KEY = 'van-builder-display-unit';
+
+/** Active display unit for length values (labels + numeric inputs). Pure
+ * presentation — internal storage, geometry, and every persisted linear
+ * value stay in millimeters. Default 'cm'. Dropdown state is persisted in
+ * localStorage, separate from the project file (geometry never depends on
+ * how numbers are shown). */
+const loadDisplayUnit = (): DisplayUnit => {
+  try {
+    const v = localStorage.getItem(DISPLAY_UNIT_KEY);
+    if (v === 'mm' || v === 'cm' || v === 'inch') return v;
+  } catch {
+    // storage unavailable — fall through to default
+  }
+  return 'cm';
+};
 
 const DEFAULTS: ops.ProjectDefaults = {
   shell: DEFAULT_SHELL,
@@ -42,6 +60,11 @@ interface StoreState {
    * edited, and nothing is written back to the bridge file. Transient. */
   viewerMode: boolean;
   setViewerMode: (on: boolean) => void;
+
+  /** Display unit for user-facing length values ('mm' | 'cm' | 'inch').
+   * Pure presentation; internal data stays millimeters. Persisted. */
+  displayUnit: DisplayUnit;
+  setDisplayUnit: (unit: DisplayUnit) => void;
 
   /** Whether the full-screen Catalog Sheet (spreadsheet view of every
    * component def — pricing, dims, links, notes) is open over the editor.
@@ -128,6 +151,16 @@ export const useStore = create<StoreState>((set, get) => ({
 
   viewerMode: false,
   setViewerMode: (on) => set({ viewerMode: on, selectedInstanceId: null }),
+
+  displayUnit: loadDisplayUnit(),
+  setDisplayUnit: (unit) => {
+    try {
+      localStorage.setItem(DISPLAY_UNIT_KEY, unit);
+    } catch {
+      // storage unavailable — the toggle still works for this session
+    }
+    set({ displayUnit: unit });
+  },
 
   catalogSheetOpen: false,
   setCatalogSheetOpen: (on) => set({ catalogSheetOpen: on }),

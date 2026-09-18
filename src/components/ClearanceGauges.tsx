@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import * as THREE from 'three';
 import { useStore } from '../store';
 import { computeClearances, instanceAABB } from '../geometry';
+import { formatLength, UNIT_LABEL, type DisplayUnit } from '../lib/units';
 
 const GAUGE_COLOR = '#ffffff';
 const MIN_VISIBLE = 1; // mm (was 0.05 in) — anything smaller isn't worth drawing
@@ -11,10 +12,12 @@ function GaugeLine({
   from,
   to,
   value,
+  unit,
 }: {
   from: [number, number, number];
   to: [number, number, number];
   value: number;
+  unit: DisplayUnit;
 }) {
   const geo = useMemo(() => {
     const g = new THREE.BufferGeometry();
@@ -45,7 +48,7 @@ function GaugeLine({
             pointerEvents: 'none',
           }}
         >
-          {value.toFixed(1)}"
+          {formatLength(value, unit)} {UNIT_LABEL[unit]}
         </div>
       </Html>
     </group>
@@ -64,7 +67,7 @@ export default function ClearanceGauges() {
   const defs = useStore((s) => s.defs);
   const shell = useStore((s) => s.shell);
   const overlapMatrix = useStore((s) => s.overlapMatrix);
-
+  const unit = useStore((s) => s.displayUnit);
   if (!showClearances || !selectedId) return null;
   const target = instances.find((i) => i.id === selectedId);
   const defsById = Object.fromEntries(defs.map((d) => [d.id, d]));
@@ -80,12 +83,12 @@ export default function ClearanceGauges() {
 
   return (
     <group>
-      <GaugeLine from={[box.minX, cy, cz]} to={[box.minX - c.left, cy, cz]} value={c.left} />
-      <GaugeLine from={[box.maxX, cy, cz]} to={[box.maxX + c.right, cy, cz]} value={c.right} />
-      <GaugeLine from={[cx, box.maxY, cz]} to={[cx, box.maxY + c.up, cz]} value={c.up} />
-      <GaugeLine from={[cx, box.minY, cz]} to={[cx, box.minY - c.down, cz]} value={c.down} />
-      <GaugeLine from={[cx, cy, box.minZ]} to={[cx, cy, box.minZ - c.forward]} value={c.forward} />
-      <GaugeLine from={[cx, cy, box.maxZ]} to={[cx, cy, box.maxZ + c.back]} value={c.back} />
+      <GaugeLine from={[box.minX, cy, cz]} to={[box.minX - c.left, cy, cz]} value={c.left} unit={unit} />
+      <GaugeLine from={[box.maxX, cy, cz]} to={[box.maxX + c.right, cy, cz]} value={c.right} unit={unit} />
+      <GaugeLine from={[cx, box.maxY, cz]} to={[cx, box.maxY + c.up, cz]} value={c.up} unit={unit} />
+      <GaugeLine from={[cx, box.minY, cz]} to={[cx, box.minY - c.down, cz]} value={c.down} unit={unit} />
+      <GaugeLine from={[cx, cy, box.minZ]} to={[cx, cy, box.minZ - c.forward]} value={c.forward} unit={unit} />
+      <GaugeLine from={[cx, cy, box.maxZ]} to={[cx, cy, box.maxZ + c.back]} value={c.back} unit={unit} />
     </group>
   );
 }

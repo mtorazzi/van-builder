@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { useStore } from '../store';
 import { CATEGORIES, CATEGORY_COLORS } from '../types';
+import { formatLength, parseLength, UNIT_LABEL } from '../lib/units';
 import type { Category, InventoryStatus, MountSurface } from '../types';
 
 const INVENTORY_STATUSES: InventoryStatus[] = ['proposed', 'ordered', 'owned', 'placed', 'superseded'];
+
+const DEFAULT_DIMS_MM = { w: 300, d: 300, h: 300 }; // ~12" per side, metric
 
 export default function CatalogPanel() {
   const defs = useStore((s) => s.defs);
@@ -14,6 +17,7 @@ export default function CatalogPanel() {
   const instances = useStore((s) => s.instances);
   const selectedInstanceId = useStore((s) => s.selectedInstanceId);
   const openSheet = useStore((s) => s.setCatalogSheetOpen);
+  const unit = useStore((s) => s.displayUnit);
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showNewForm, setShowNewForm] = useState(false);
@@ -21,9 +25,7 @@ export default function CatalogPanel() {
     name: '',
     category: 'other' as Category,
     mountSurface: 'floor' as MountSurface,
-    w: 12,
-    d: 12,
-    h: 12,
+    ...DEFAULT_DIMS_MM,
     overlapGroup: '',
   });
   const itemRefs = useRef(new Map<string, HTMLDivElement>());
@@ -40,7 +42,7 @@ export default function CatalogPanel() {
   }, [selectedInstanceId, instances]);
 
   function resetForm() {
-    setForm({ name: '', category: 'other', mountSurface: 'floor', w: 12, d: 12, h: 12, overlapGroup: '' });
+    setForm({ name: '', category: 'other', mountSurface: 'floor', ...DEFAULT_DIMS_MM, overlapGroup: '' });
   }
 
   function handleCreate() {
@@ -92,7 +94,8 @@ export default function CatalogPanel() {
                     )}
                   </div>
                   <span className="dims">
-                    {d.dims.w}×{d.dims.d}×{d.dims.h}"
+                    {formatLength(d.dims.w, unit)}×{formatLength(d.dims.d, unit)}×{formatLength(d.dims.h, unit)}{' '}
+                    {UNIT_LABEL[unit]}
                     {d.tags && d.tags.length > 0 && <span className="tags-hint"> · {d.tags.slice(0, 2).join(', ')}{d.tags.length > 2 ? '…' : ''}</span>}
                   </span>
                 </div>
@@ -142,25 +145,25 @@ export default function CatalogPanel() {
                     </select>
                   </div>
                   <div className="field-row">
-                    <label>W × D × H (in)</label>
+                    <label>W × D × H ({UNIT_LABEL[unit]})</label>
                     <div style={{ display: 'flex', gap: 4 }}>
                       <input
                         type="number"
                         style={{ width: 46 }}
-                        value={d.dims.w}
-                        onChange={(e) => updateDef(d.id, { dims: { ...d.dims, w: parseFloat(e.target.value) || 0 } })}
+                        value={formatLength(d.dims.w, unit)}
+                        onChange={(e) => updateDef(d.id, { dims: { ...d.dims, w: parseLength(e.target.value, unit) } })}
                       />
                       <input
                         type="number"
                         style={{ width: 46 }}
-                        value={d.dims.d}
-                        onChange={(e) => updateDef(d.id, { dims: { ...d.dims, d: parseFloat(e.target.value) || 0 } })}
+                        value={formatLength(d.dims.d, unit)}
+                        onChange={(e) => updateDef(d.id, { dims: { ...d.dims, d: parseLength(e.target.value, unit) } })}
                       />
                       <input
                         type="number"
                         style={{ width: 46 }}
-                        value={d.dims.h}
-                        onChange={(e) => updateDef(d.id, { dims: { ...d.dims, h: parseFloat(e.target.value) || 0 } })}
+                        value={formatLength(d.dims.h, unit)}
+                        onChange={(e) => updateDef(d.id, { dims: { ...d.dims, h: parseLength(e.target.value, unit) } })}
                       />
                     </div>
                   </div>
@@ -318,25 +321,25 @@ export default function CatalogPanel() {
             </select>
           </div>
           <div className="field-row">
-            <label>W × D × H (in)</label>
+            <label>W × D × H ({UNIT_LABEL[unit]})</label>
             <div style={{ display: 'flex', gap: 4 }}>
               <input
                 type="number"
                 style={{ width: 46 }}
-                value={form.w}
-                onChange={(e) => setForm({ ...form, w: parseFloat(e.target.value) || 0 })}
+                value={formatLength(form.w, unit)}
+                onChange={(e) => setForm({ ...form, w: parseLength(e.target.value, unit) })}
               />
               <input
                 type="number"
                 style={{ width: 46 }}
-                value={form.d}
-                onChange={(e) => setForm({ ...form, d: parseFloat(e.target.value) || 0 })}
+                value={formatLength(form.d, unit)}
+                onChange={(e) => setForm({ ...form, d: parseLength(e.target.value, unit) })}
               />
               <input
                 type="number"
                 style={{ width: 46 }}
-                value={form.h}
-                onChange={(e) => setForm({ ...form, h: parseFloat(e.target.value) || 0 })}
+                value={formatLength(form.h, unit)}
+                onChange={(e) => setForm({ ...form, h: parseLength(e.target.value, unit) })}
               />
             </div>
           </div>

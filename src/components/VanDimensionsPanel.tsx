@@ -1,6 +1,7 @@
 import { useStore } from '../store';
 import { computeEnvelope } from '../geometry';
 import type { VanShell } from '../types';
+import { formatLength, parseLength, UNIT_LABEL } from '../lib/units';
 
 const FIELDS: { key: keyof VanShell; label: string; step?: number }[] = [
   { key: 'interiorLength', label: 'Interior length (front-back)', step: 25 },
@@ -15,7 +16,15 @@ const FIELDS: { key: keyof VanShell; label: string; step?: number }[] = [
 export default function VanDimensionsPanel() {
   const shell = useStore((s) => s.shell);
   const setShell = useStore((s) => s.setShell);
+  const unit = useStore((s) => s.displayUnit);
   const env = computeEnvelope(shell);
+
+  // Input values are stored in millimeters internally; they are shown (and
+  // typed) in the active display unit.
+  function num(key: keyof VanShell) {
+    return (e: React.ChangeEvent<HTMLInputElement>) =>
+      setShell({ [key]: parseLength(e.target.value, unit) } as Partial<VanShell>);
+  }
 
   return (
     <div className="section">
@@ -31,17 +40,18 @@ export default function VanDimensionsPanel() {
       </div>
       {FIELDS.map((f) => (
         <div className="field-row" key={f.key}>
-          <label>{f.label} (in)</label>
+          <label>{f.label} ({UNIT_LABEL[unit]})</label>
           <input
             type="number"
-            step={f.step ?? 1}
-            value={shell[f.key] as number}
-            onChange={(e) => setShell({ [f.key]: parseFloat(e.target.value) || 0 } as Partial<VanShell>)}
+            step={f.step}
+            value={formatLength(shell[f.key] as number, unit)}
+            onChange={num(f.key)}
           />
         </div>
       ))}
       <div className="hint">
-        Buildable envelope: {env.width.toFixed(1)}"W × {env.length.toFixed(1)}"L × {env.height.toFixed(1)}"H
+        Buildable envelope: {formatLength(env.width, unit)} × {formatLength(env.length, unit)} ×{' '}
+        {formatLength(env.height, unit)} {UNIT_LABEL[unit]} (W × L × H)
         <br />
         (raw shell minus wall framing + insulation + floor/ceiling build-up)
       </div>

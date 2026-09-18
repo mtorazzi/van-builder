@@ -2,6 +2,7 @@ import { useCallback, useRef } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
 import { useStore, GRID_SNAP } from '../store';
 import { CATEGORY_COLORS, PORT_COLORS } from '../types';
+import { formatLength, parseLength, UNIT_LABEL } from '../lib/units';
 
 const HOLD_DELAY_MS = 400;
 const HOLD_REPEAT_MS = 120;
@@ -67,6 +68,7 @@ export default function InspectorPanel() {
   const showClearances = useStore((s) => s.showClearances);
   const toggleClearances = useStore((s) => s.toggleClearances);
   const doorsOpen = useStore((s) => s.doorsOpen);
+  const unit = useStore((s) => s.displayUnit);
 
   const selected = instances.find((i) => i.id === selectedId) ?? null;
   const def = selected ? defsById[selected.defId] : null;
@@ -125,18 +127,18 @@ export default function InspectorPanel() {
 
             <div className="hint">
               {isDoorMount
-                ? 'Position (in) — X: side-to-side on the door, Y: height on the door. Z is locked flush against the door — it can\'t be moved away from touching it.'
+                ? `Position (${UNIT_LABEL[unit]}) — X: side-to-side on the door, Y: height on the door. Z is locked flush against the door — it can't be moved away from touching it.`
                 : isCeilingMount
-                  ? 'Position (in) — X: width, Z: length. Y is derived: the top always hugs the ceiling, or the underside of whatever interior item is directly above it (e.g. the bed) — and follows it if that moves.'
-                  : 'Position (in) — X: width, Y: height off floor, Z: length'}
+                  ? `Position (${UNIT_LABEL[unit]}) — X: width, Z: length. Y is derived: the top always hugs the ceiling, or the underside of whatever interior item is directly above it (e.g. the bed) — and follows it if that moves.`
+                  : `Position (${UNIT_LABEL[unit]}) — X: width, Y: height off floor, Z: length`}
             </div>
             <div className="field-row">
               <label>X</label>
               <input
                 type="number"
-                value={selected.pos.x}
+                value={formatLength(selected.pos.x, unit)}
                 onChange={(e) =>
-                  updateInstance(selected.id, { pos: { ...selected.pos, x: parseFloat(e.target.value) || 0 } })
+                  updateInstance(selected.id, { pos: { ...selected.pos, x: parseLength(e.target.value, unit) } })
                 }
               />
             </div>
@@ -144,9 +146,9 @@ export default function InspectorPanel() {
               <label>Y</label>
               <input
                 type="number"
-                value={selected.pos.y}
+                value={formatLength(selected.pos.y, unit)}
                 onChange={(e) =>
-                  updateInstance(selected.id, { pos: { ...selected.pos, y: parseFloat(e.target.value) || 0 } })
+                  updateInstance(selected.id, { pos: { ...selected.pos, y: parseLength(e.target.value, unit) } })
                 }
               />
             </div>
@@ -154,11 +156,11 @@ export default function InspectorPanel() {
               <label>Z</label>
               <input
                 type="number"
-                value={selected.pos.z}
+                value={formatLength(selected.pos.z, unit)}
                 disabled={isDoorMount}
                 title={isDoorMount ? 'Locked — exterior-mounted items stay flush against the door' : undefined}
                 onChange={(e) =>
-                  updateInstance(selected.id, { pos: { ...selected.pos, z: parseFloat(e.target.value) || 0 } })
+                  updateInstance(selected.id, { pos: { ...selected.pos, z: parseLength(e.target.value, unit) } })
                 }
               />
             </div>
@@ -183,7 +185,7 @@ export default function InspectorPanel() {
               </div>
             )}
 
-            <div className="hint">Move (± {GRID_SNAP} mm) — floor plane, and height</div>
+            <div className="hint">Move (± {GRID_SNAP} mm per step / hold) — floor plane, and height</div>
             <div className="dpad-row">
               <div className="dpad">
                 <button className="dpad-btn dpad-fwd" title="Forward (hold to keep moving)" {...fwdHold}>
@@ -223,7 +225,7 @@ export default function InspectorPanel() {
             </button>
 
             <div className="hint" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span>Clearance to nearest obstacle (in)</span>
+              <span>Clearance to nearest obstacle ({UNIT_LABEL[unit]})</span>
               <label style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}>
                 <input type="checkbox" checked={showClearances} onChange={toggleClearances} />
                 show in 3D
@@ -233,27 +235,27 @@ export default function InspectorPanel() {
               <div className="clearance-grid">
                 <div className="clearance-cell" style={{ gridArea: 'fwd' }}>
                   <span className="clearance-label">Fwd</span>
-                  <span className="clearance-value">{clearances.forward.toFixed(1)}"</span>
+                  <span className="clearance-value">{formatLength(clearances.forward, unit)} {UNIT_LABEL[unit]}</span>
                 </div>
                 <div className="clearance-cell" style={{ gridArea: 'left' }}>
                   <span className="clearance-label">Left</span>
-                  <span className="clearance-value">{clearances.left.toFixed(1)}"</span>
+                  <span className="clearance-value">{formatLength(clearances.left, unit)} {UNIT_LABEL[unit]}</span>
                 </div>
                 <div className="clearance-cell" style={{ gridArea: 'right' }}>
                   <span className="clearance-label">Right</span>
-                  <span className="clearance-value">{clearances.right.toFixed(1)}"</span>
+                  <span className="clearance-value">{formatLength(clearances.right, unit)} {UNIT_LABEL[unit]}</span>
                 </div>
                 <div className="clearance-cell" style={{ gridArea: 'back' }}>
                   <span className="clearance-label">Back</span>
-                  <span className="clearance-value">{clearances.back.toFixed(1)}"</span>
+                  <span className="clearance-value">{formatLength(clearances.back, unit)} {UNIT_LABEL[unit]}</span>
                 </div>
                 <div className="clearance-cell" style={{ gridArea: 'up' }}>
                   <span className="clearance-label">Up</span>
-                  <span className="clearance-value">{clearances.up.toFixed(1)}"</span>
+                  <span className="clearance-value">{formatLength(clearances.up, unit)} {UNIT_LABEL[unit]}</span>
                 </div>
                 <div className="clearance-cell" style={{ gridArea: 'down' }}>
                   <span className="clearance-label">Down</span>
-                  <span className="clearance-value">{clearances.down.toFixed(1)}"</span>
+                  <span className="clearance-value">{formatLength(clearances.down, unit)} {UNIT_LABEL[unit]}</span>
                 </div>
               </div>
             )}

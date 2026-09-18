@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useStore } from '../store';
 import type { VanShell } from '../types';
+import { formatLength, parseLength, UNIT_LABEL } from '../lib/units';
 
 export default function VanFeaturesPanel() {
   const shell = useStore((s) => s.shell);
@@ -8,9 +9,11 @@ export default function VanFeaturesPanel() {
   const doorsOpen = useStore((s) => s.doorsOpen);
   const toggleDoor = useStore((s) => s.toggleDoor);
   const [open, setOpen] = useState(false);
+  const unit = useStore((s) => s.displayUnit);
 
   function num(key: keyof VanShell) {
-    return (e: React.ChangeEvent<HTMLInputElement>) => setShell({ [key]: parseFloat(e.target.value) || 0 } as Partial<VanShell>);
+    return (e: React.ChangeEvent<HTMLInputElement>) =>
+      setShell({ [key]: parseLength(e.target.value, unit) } as Partial<VanShell>);
   }
 
   return (
@@ -42,44 +45,49 @@ export default function VanFeaturesPanel() {
             Cab area (driver/passenger seats, swiveled to face the rear). Nothing may be built inside this zone.
           </div>
           <div className="field-row">
-            <label>Cab depth from front (in)</label>
-            <input type="number" value={shell.cabDepth} onChange={num('cabDepth')} />
+            <label>Cab depth from front ({UNIT_LABEL[unit]})</label>
+            <input
+              type="number"
+              step={25}
+              value={formatLength(shell.cabDepth, unit)}
+              onChange={num('cabDepth')}
+            />
           </div>
           <div className="field-row">
-            <label>Seat width (in)</label>
-            <input type="number" value={shell.cabSeatWidth} onChange={num('cabSeatWidth')} />
+            <label>Seat width ({UNIT_LABEL[unit]})</label>
+            <input type="number" step={25} value={formatLength(shell.cabSeatWidth, unit)} onChange={num('cabSeatWidth')} />
           </div>
           <div className="field-row">
-            <label>Seat depth (in)</label>
-            <input type="number" value={shell.cabSeatDepth} onChange={num('cabSeatDepth')} />
+            <label>Seat depth ({UNIT_LABEL[unit]})</label>
+            <input type="number" step={25} value={formatLength(shell.cabSeatDepth, unit)} onChange={num('cabSeatDepth')} />
           </div>
           <div className="field-row">
-            <label>Seat height (in)</label>
-            <input type="number" value={shell.cabSeatHeight} onChange={num('cabSeatHeight')} />
+            <label>Seat height ({UNIT_LABEL[unit]})</label>
+            <input type="number" step={25} value={formatLength(shell.cabSeatHeight, unit)} onChange={num('cabSeatHeight')} />
           </div>
 
           <div className="hint">Rear swing doors (shown propped open)</div>
           <div className="field-row">
-            <label>Rear door width (in)</label>
-            <input type="number" value={shell.rearDoorWidth} onChange={num('rearDoorWidth')} />
+            <label>Rear door width ({UNIT_LABEL[unit]})</label>
+            <input type="number" step={25} value={formatLength(shell.rearDoorWidth, unit)} onChange={num('rearDoorWidth')} />
           </div>
           <div className="field-row">
-            <label>Rear door height (in)</label>
-            <input type="number" value={shell.rearDoorHeight} onChange={num('rearDoorHeight')} />
+            <label>Rear door height ({UNIT_LABEL[unit]})</label>
+            <input type="number" step={25} value={formatLength(shell.rearDoorHeight, unit)} onChange={num('rearDoorHeight')} />
           </div>
 
           <div className="hint">Side sliding door — dimensions vary by van, adjust as needed</div>
           <div className="field-row">
-            <label>Side door width (in)</label>
-            <input type="number" value={shell.sideDoorWidth} onChange={num('sideDoorWidth')} />
+            <label>Side door width ({UNIT_LABEL[unit]})</label>
+            <input type="number" step={25} value={formatLength(shell.sideDoorWidth, unit)} onChange={num('sideDoorWidth')} />
           </div>
           <div className="field-row">
-            <label>Side door height (in)</label>
-            <input type="number" value={shell.sideDoorHeight} onChange={num('sideDoorHeight')} />
+            <label>Side door height ({UNIT_LABEL[unit]})</label>
+            <input type="number" step={25} value={formatLength(shell.sideDoorHeight, unit)} onChange={num('sideDoorHeight')} />
           </div>
           <div className="field-row">
-            <label>Offset from front (in)</label>
-            <input type="number" value={shell.sideDoorOffsetZ} onChange={num('sideDoorOffsetZ')} />
+            <label>Offset from front ({UNIT_LABEL[unit]})</label>
+            <input type="number" step={25} value={formatLength(shell.sideDoorOffsetZ, unit)} onChange={num('sideDoorOffsetZ')} />
           </div>
           <div className="field-row">
             <label>Side</label>
@@ -94,8 +102,8 @@ export default function VanFeaturesPanel() {
 
           <div className="hint">Roof layer — solar, Starlink, vents, roof A/C (its own layout plane)</div>
           <div className="field-row">
-            <label>Roof equipment clearance (in)</label>
-            <input type="number" value={shell.roofClearance} onChange={num('roofClearance')} />
+            <label>Roof equipment clearance ({UNIT_LABEL[unit]})</label>
+            <input type="number" step={25} value={formatLength(shell.roofClearance, unit)} onChange={num('roofClearance')} />
           </div>
 
           <div className="hint">
@@ -103,8 +111,8 @@ export default function VanFeaturesPanel() {
             stand-in for the engine/transmission area)
           </div>
           <div className="field-row">
-            <label>Underbody clearance (in)</label>
-            <input type="number" value={shell.underbodyClearance} onChange={num('underbodyClearance')} />
+            <label>Underbody clearance ({UNIT_LABEL[unit]})</label>
+            <input type="number" step={25} value={formatLength(shell.underbodyClearance, unit)} onChange={num('underbodyClearance')} />
           </div>
 
           <div className="hint">
@@ -113,20 +121,20 @@ export default function VanFeaturesPanel() {
             ProMaster 159" EXT — true these up with a tape measure. Set width or height to 0 to disable.
           </div>
           <div className="field-row">
-            <label>Intrusion from side wall (in)</label>
-            <input type="number" value={shell.wheelWellWidth} onChange={num('wheelWellWidth')} />
+            <label>Intrusion from side wall ({UNIT_LABEL[unit]})</label>
+            <input type="number" step={25} value={formatLength(shell.wheelWellWidth, unit)} onChange={num('wheelWellWidth')} />
           </div>
           <div className="field-row">
-            <label>Height off floor (in)</label>
-            <input type="number" value={shell.wheelWellHeight} onChange={num('wheelWellHeight')} />
+            <label>Height off floor ({UNIT_LABEL[unit]})</label>
+            <input type="number" step={25} value={formatLength(shell.wheelWellHeight, unit)} onChange={num('wheelWellHeight')} />
           </div>
           <div className="field-row">
-            <label>Length, front-to-back (in)</label>
-            <input type="number" value={shell.wheelWellLength} onChange={num('wheelWellLength')} />
+            <label>Length, front-to-back ({UNIT_LABEL[unit]})</label>
+            <input type="number" step={25} value={formatLength(shell.wheelWellLength, unit)} onChange={num('wheelWellLength')} />
           </div>
           <div className="field-row">
-            <label>Rear wheel well center, from front wall (in)</label>
-            <input type="number" value={shell.rearWheelWellCenterZ} onChange={num('rearWheelWellCenterZ')} />
+            <label>Rear wheel well center, from front wall ({UNIT_LABEL[unit]})</label>
+            <input type="number" step={25} value={formatLength(shell.rearWheelWellCenterZ, unit)} onChange={num('rearWheelWellCenterZ')} />
           </div>
         </>
       )}

@@ -40,7 +40,7 @@ instances already at their target Qty.
 | `Category` | yes | one of: `structure`, `bed`, `seating`, `kitchen`, `sink`, `vanity`, `shower`, `toilet`, `storage`, `cabinet`, `appliance`, `electrical`, `water`, `plumbing`, `lighting`, `roof`, `other` |
 | `Item` | yes | Display name. If it names an existing catalog part (see below), match that name **exactly** so it's recognized as the same part rather than creating a duplicate. Otherwise use a specific, final-sounding name (brand/model when known) — this becomes the permanent name once Status is `final`. |
 | `Qty` | no (default 1) | How many instances of this exact item are needed. |
-| `W` / `D` / `H` | no | Footprint in inches at rotation 0 — W = across the van's width, D = along its length, H = up. Leave `TBD` if not known yet; the importer will create a 12×12×12" placeholder and flag it. |
+| `W` / `D` / `H` | no | Footprint in millimeters (mm) at rotation 0 — W = across the van's width, D = along its length, H = up. Legacy templates that listed inches are ×25.4 now. Leave `TBD` if not known yet; the importer will create a ~305×305×305 mm placeholder and flag it. |
 | `MountSurface` | no (default `floor`) | `floor`, `roof` (roof-mounted gear), `underbody` (frame-mounted, e.g. tanks), `door` (rear door), `ceiling` (ceiling-hung), or `wall` (side wall mount). |
 | `Cost` | no | Estimated unit cost in USD, plain number (no `$`/commas needed, they're stripped). `TBD` if unknown. |
 | `Status` | no (inferred) | `final` once name + dims + cost are all locked in, otherwise `placeholder`. If omitted, the importer infers it from whether dims/cost are filled in. |

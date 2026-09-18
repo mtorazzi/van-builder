@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 import { useStore } from '../store';
+import { DISPLAY_UNITS, UNIT_LABEL, type DisplayUnit } from '../lib/units';
 import type { ProjectState } from '../types';
 
 export default function TopBar() {
@@ -11,6 +12,8 @@ export default function TopBar() {
   const toggleLabels = useStore((s) => s.toggleLabels);
   const openSheet = useStore((s) => s.setCatalogSheetOpen);
   const violations = useStore((s) => s.violations());
+  const displayUnit = useStore((s) => s.displayUnit);
+  const setDisplayUnit = useStore((s) => s.setDisplayUnit);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   function handleExport() {
@@ -55,6 +58,21 @@ export default function TopBar() {
       <span className={`violations-badge ${violations.length === 0 ? 'ok' : ''}`}>
         {violations.length === 0 ? 'No conflicts' : `${violations.length} conflict${violations.length === 1 ? '' : 's'}`}
       </span>
+      <label className="hint" style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 0 }}>
+        Units
+        <select
+          value={displayUnit}
+          onChange={(e) => setDisplayUnit(e.target.value as DisplayUnit)}
+          title="Display unit for all length values — internal data is always millimeters"
+          style={{ width: 66 }}
+        >
+          {DISPLAY_UNITS.map((u) => (
+            <option key={u} value={u}>
+              {UNIT_LABEL[u] === '"' ? 'inch ("' : UNIT_LABEL[u] === 'cm' ? 'cm' : 'mm'}
+            </option>
+          ))}
+        </select>
+      </label>
       <label className="hint" style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 0 }}>
         <input type="checkbox" checked={showLabels} onChange={toggleLabels} />
         Labels

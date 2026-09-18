@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useStore } from '../store';
 import { CATEGORIES, CATEGORY_COLORS } from '../types';
+import { formatLength, UNIT_LABEL } from '../lib/units';
 import type { Category, ComponentDef, InventoryStatus, MountSurface } from '../types';
 
 const INVENTORY_STATUSES: InventoryStatus[] = ['proposed', 'ordered', 'owned', 'placed', 'superseded'];
@@ -66,6 +67,7 @@ export default function CatalogSheetView() {
   const addInstance = useStore((s) => s.addInstance);
   const close = useStore((s) => s.setCatalogSheetOpen);
   const shellName = useStore((s) => s.shell.name);
+  const unit = useStore((s) => s.displayUnit);
 
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState<Category | 'all'>('all');
@@ -262,9 +264,9 @@ export default function CatalogSheetView() {
               <Th k="name" label="Item" />
               <Th k="category" label="Category" />
               <Th k="mount" label="Plane" />
-              <Th k="w" label="W" num />
-              <Th k="d" label="D" num />
-              <Th k="h" label="H" num />
+              <Th k="w" label={`W (${UNIT_LABEL[unit]})`} num />
+              <Th k="d" label={`D (${UNIT_LABEL[unit]})`} num />
+              <Th k="h" label={`H (${UNIT_LABEL[unit]})`} num />
               <Th k="cost" label="Unit cost" num />
               <Th k="qty" label="Qty" num />
               <Th k="total" label="Line total" num />
@@ -290,9 +292,9 @@ export default function CatalogSheetView() {
                   </td>
                   <td>{d.category}</td>
                   <td>{d.mountSurface ?? 'floor'}</td>
-                  <td className="num">{d.dims.w}</td>
-                  <td className="num">{d.dims.d}</td>
-                  <td className="num">{d.dims.h}</td>
+                  <td className="num">{formatLength(d.dims.w, unit)}</td>
+                  <td className="num">{formatLength(d.dims.d, unit)}</td>
+                  <td className="num">{formatLength(d.dims.h, unit)}</td>
                   <td className="num">
                     <input
                       type="number"
