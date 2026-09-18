@@ -36,7 +36,7 @@ import { createVanBuilderServer } from './server.js';
 
 const PORT = parseInt(process.env.VAN_BUILDER_MCP_PORT || '8767', 10);
 const TOKEN = process.env.VAN_BUILDER_MCP_TOKEN || null;
-const HOST = '127.0.0.1';
+const HOST = process.env.VAN_BUILDER_MCP_HOST || '127.0.0.1';
 
 // ----- Streamable HTTP transport (modern MCP clients) -----
 const streamableServer = createVanBuilderServer();
