@@ -84,7 +84,93 @@ function rehangCeilingInstances(project: ProjectState): ProjectState {
   return changed ? { ...project, instances } : project;
 }
 
-export const GRID_SNAP = 0.5; // inches — shared placement/nudge grid
+export const GRID_SNAP = 5; // mm — shared placement/nudge grid (was 0.5 in)
+
+/** Current project schema version. Version 1 (or a missing version field)
+ * means a legacy project in inches; version 2 is millimeters. */
+export const PROJECT_SCHEMA_VERSION = 2;
+
+const MM_PER_INCH = 25.4;
+/** Legacy-inch → mm conversion policy: nearest whole millimeter. */
+const mmFromInch = (inch: number) => Math.round(inch * MM_PER_INCH);
+
+/** Linear fields of a legacy (inches) project that must be scaled. */
+const SHELL_LINEAR_KEYS = [
+  'interiorLength',
+  'interiorWidth',
+  'interiorHeight',
+  'wallFramingThickness',
+  'insulationThickness',
+  'ceilingFramingThickness',
+  'floorBuildUpThickness',
+  'cabDepth',
+  'cabSeatWidth',
+  'cabSeatDepth',
+  'cabSeatHeight',
+  'rearDoorWidth',
+  'rearDoorHeight',
+  'sideDoorWidth',
+  'sideDoorHeight',
+  'sideDoorOffsetZ',
+  'roofClearance',
+  'underbodyClearance',
+  'wheelWellWidth',
+  'wheelWellHeight',
+  'wheelWellLength',
+  'rearWheelWellCenterZ',
+] as const;
+
+/**
+ * Convert every linear value of a possibly-partial legacy (inches) project
+ * object into millimeters (×25.4, rounded to the nearest whole mm) and stamp
+ * it with the current schema version. Prices/USD, statuses, ids, colors,
+ * names, and the overlap matrix (no linear values in it) are untouched.
+ * Exported so it can be unit-tested directly; wired into normalizeProject
+ * below, which is the one serialization/import boundary for store,
+ * JSON import/export, and the MCP file-bridge alike.
+ */
+export function migrateInchesToMm(data: unknown): unknown {
+  const p = data as Partial<ProjectState> | null | undefined;
+  if (!p || typeof p !== 'object') return data;
+  const shell = { ...((p.shell ?? {}) as Record<string, unknown>) };
+  for (const k of SHELL_LINEAR_KEYS) {
+    if (typeof shell[k] === 'number') shell[k] = mmFromInch(shell[k] as number);
+  }
+  const defs = Array.isArray(p.defs)
+    ? p.defs.map((d) => {
+        if (!d || typeof d !== 'object') return d;
+        const dims = d.dims;
+        return {
+          ...d,
+          dims:
+            dims && typeof dims === 'object'
+              ? {
+                  w: typeof dims.w === 'number' ? mmFromInch(dims.w) : dims.w,
+                  d: typeof dims.d === 'number' ? mmFromInch(dims.d) : dims.d,
+                  h: typeof dims.h === 'number' ? mmFromInch(dims.h) : dims.h,
+                }
+              : dims,
+          ...(d.ports && Array.isArray(d.ports)
+            ? { ports: d.ports.map((port) => ({ ...port, x: mmFromInch(port.x), y: mmFromInch(port.y), z: mmFromInch(port.z) })) }
+            : {}),
+        };
+      })
+    : p.defs;
+  const instances = Array.isArray(p.instances)
+    ? p.instances.map((i) => {
+        if (!i || typeof i !== 'object' || !i.pos) return i;
+        return {
+          ...i,
+          pos: {
+            x: typeof i.pos.x === 'number' ? mmFromInch(i.pos.x) : i.pos.x,
+            y: typeof i.pos.y === 'number' ? mmFromInch(i.pos.y) : i.pos.y,
+            z: typeof i.pos.z === 'number' ? mmFromInch(i.pos.z) : i.pos.z,
+          },
+        };
+      })
+    : p.instances;
+  return { ...p, version: PROJECT_SCHEMA_VERSION, shell, defs, instances };
+}
 
 export interface ProjectDefaults {
   shell: VanShell;
@@ -106,19 +192,24 @@ export function normalizeProject(data: unknown, defaults: ProjectDefaults): Proj
   const parsed = data as Partial<ProjectState> | null | undefined;
   if (!parsed || typeof parsed !== 'object' || !parsed.shell || !parsed.defs) {
     return {
-      version: 1,
+      version: PROJECT_SCHEMA_VERSION,
       shell: defaults.shell,
       defs: defaults.defs,
       instances: [],
       overlapMatrix: defaults.buildOverlapMatrix(),
     };
   }
+  // Legacy inch-era projects (no version field, or version 1) are converted
+  // to millimeters before anything reads them; already-mm projects pass
+  // through untouched.
+  const legacy = (parsed.version ?? 1) < PROJECT_SCHEMA_VERSION;
+  const converted = (legacy ? migrateInchesToMm(parsed) : parsed) as Partial<ProjectState>;
   return {
-    version: 1,
-    shell: { ...defaults.shell, ...parsed.shell },
-    defs: parsed.defs,
-    instances: parsed.instances ?? [],
-    overlapMatrix: parsed.overlapMatrix ?? defaults.buildOverlapMatrix(),
+    version: PROJECT_SCHEMA_VERSION,
+    shell: { ...defaults.shell, ...converted.shell },
+    defs: converted.defs ?? [],
+    instances: converted.instances ?? [],
+    overlapMatrix: converted.overlapMatrix ?? defaults.buildOverlapMatrix(),
   };
 }
 
@@ -181,7 +272,7 @@ export function addInstance(project: ProjectState, defId: string): InstanceResul
     const count = project.instances.filter((i) => i.defId === defId && (i.doorId ?? 'rear-left') === doorId).length;
     const env = computeDoorEnvelope(project.shell, doorId, def.dims.d);
     const halfW = def.dims.w / 2;
-    const cx = clamp(env.minX + halfW + count * 4, env.minX + halfW, Math.max(env.minX + halfW, env.maxX - halfW));
+    const cx = clamp(env.minX + halfW + count * 100, env.minX + halfW, Math.max(env.minX + halfW, env.maxX - halfW));
     const z = requiredDoorTouchZ(project.shell, def.dims.d);
     const instance: PlacedInstance = {
       id: uuid(),
@@ -198,7 +289,7 @@ export function addInstance(project: ProjectState, defId: string): InstanceResul
     const count = project.instances.filter((i) => i.defId === defId && (i.wallSide ?? 'left') === wallSide).length;
     const env = computeWallEnvelope(project.shell, wallSide, def.dims.w);
     const halfD = def.dims.d / 2;
-    const cz = clamp(env.minZ + halfD + count * 4, env.minZ + halfD, Math.max(env.minZ + halfD, env.maxZ - halfD));
+    const cz = clamp(env.minZ + halfD + count * 100, env.minZ + halfD, Math.max(env.minZ + halfD, env.maxZ - halfD));
     const x = requiredWallTouchX(project.shell, wallSide, def.dims.w);
     const instance: PlacedInstance = {
       id: uuid(),
@@ -220,12 +311,12 @@ export function addInstance(project: ProjectState, defId: string): InstanceResul
   // the envelope — clamp again after snapping so a freshly-added instance
   // never starts out of bounds.
   const x = clamp(
-    snap(Math.min(cx + count * 4, Math.max(cx, env.maxX - w / 2)), GRID_SNAP),
+    snap(Math.min(cx + count * 100, Math.max(cx, env.maxX - w / 2)), GRID_SNAP),
     env.minX + w / 2,
     env.maxX - w / 2
   );
   const z = clamp(
-    snap(Math.min(cz + count * 4, Math.max(cz, env.maxZ - d / 2)), GRID_SNAP),
+    snap(Math.min(cz + count * 100, Math.max(cz, env.maxZ - d / 2)), GRID_SNAP),
     env.minZ + d / 2,
     env.maxZ - d / 2
   );
@@ -295,7 +386,7 @@ export function duplicateInstance(project: ProjectState, id: string): InstanceRe
   const copy = reclampConstrainedInstance(project, {
     ...src,
     id: uuid(),
-    pos: { x: src.pos.x + 2, y: src.pos.y, z: src.pos.z + 2 },
+    pos: { x: src.pos.x + 50, y: src.pos.y, z: src.pos.z + 50 },
   });
   const next = rehangCeilingInstances({ ...project, instances: [...project.instances, copy] });
   return { project: next, instance: next.instances.find((i) => i.id === copy.id) ?? copy };

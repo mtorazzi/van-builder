@@ -39,7 +39,8 @@ Set a component's plane via **Mounts on** in the catalog editor. See
   floor that also auto-clears the front `cabDepth`, a rough stand-in for the
   engine/transmission area. Exact drivetrain geometry isn't modeled.
 
-**Cab / front seats — a hard exclusion zone.** The front `cabDepth` inches of
+**Cab / front seats — a hard exclusion zone.** The front `cabDepth`
+(millimeters) of
 the van (driver + passenger area) is always off-limits to placed components,
 regardless of the envelope math — nothing can be built there. Two
 approximate captain's chairs are drawn swiveled to face the rear, positioned
@@ -78,8 +79,9 @@ standardized parts list over time.
 
 **Placing & moving.** Click "+" on a catalog entry to drop an instance into
 the van. Select it (click in the 3D view or in "Placed Items") and either:
-- drag its on-screen gizmo (snaps to 0.5"),
-- type exact X/Y/Z inches in the Inspector,
+- drag its on-screen gizmo (snaps to 5 mm),
+- type exact X/Y/Z millimeters (or cm/inch with the display-unit toggle) in the
+  Inspector,
 - use the directional pad (floor plane) and Up/Down buttons, or
 - rotate it 90° at a time.
 
@@ -201,6 +203,11 @@ This creates a public HTTPS URL like `https://your-machine.tail12345.ts.net:8444
 
 ### Common details (both transports)
 
+- **Units: millimeters.** The MCP contract is millimeters (mm) for every
+  linear value — positions, dims, clearances, shell dimensions. Prices stay
+  USD. Legacy inch-era project files (schema version 1 or missing) are
+  auto-migrated to mm (×25.4, nearest whole mm) on read by
+  `normalizeProject`'s `migrateInchesToMm`.
 - **While `npm run dev` is also running**, changes the MCP server makes
   hot-reload straight into the open browser tab (no refresh), and your own
   UI edits get written back to the same file — so the two stay in sync in

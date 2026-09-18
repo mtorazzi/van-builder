@@ -12,6 +12,7 @@
 
 import { useStore } from './store';
 import { BRIDGE_HTTP_PATH, BRIDGE_HMR_EVENT } from '../bridge-protocol';
+import { PROJECT_SCHEMA_VERSION } from './projectOps';
 import type { ProjectState } from './types';
 
 const POST_DEBOUNCE_MS = 300;
@@ -61,7 +62,7 @@ export function initDevSync(opts: { readOnly?: boolean } = {}) {
     if (postTimer) clearTimeout(postTimer);
     postTimer = setTimeout(() => {
       const project: ProjectState = {
-        version: 1,
+        version: PROJECT_SCHEMA_VERSION,
         shell: state.shell,
         defs: state.defs,
         instances: state.instances,

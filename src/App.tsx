@@ -9,7 +9,7 @@ import OverlapMatrixPanel from './components/OverlapMatrixPanel';
 import CameraViewPanel from './components/CameraViewPanel';
 import CatalogSheetView from './components/CatalogSheetView';
 import Scene from './components/Scene';
-import { useStore } from './store';
+import { useStore, GRID_SNAP } from './store';
 
 /** Phone / ?viewer layout: just the van, full-bleed, orbit with a finger,
  * pinch to zoom, one button to flip item labels on and off. */
@@ -86,7 +86,7 @@ function EditorApp() {
         <div className="canvas-wrap">
           <Scene />
           <div className="canvas-hint">
-            Drag to orbit · scroll to zoom · click an item to select &amp; drag it · gizmo snaps to {0.5}"
+            Drag to orbit · scroll to zoom · click an item to select &amp; drag it · gizmo snaps to {GRID_SNAP} mm
             <br />
             Amber zone = cab (out of bounds) · dark chairs = front seats · gray panels = rear doors · blue panel =
             side slider · green plane = roof layer · brown outline = underbody layer · ceiling items hang from above and follow the bed

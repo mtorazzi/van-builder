@@ -238,9 +238,9 @@ const placeItemShape = {
         'surface (see list_catalog). If given, it must match that component\'s actual surface or the ' +
         'call fails with an error instead of silently placing it on the wrong plane.'
     ),
-  x: z.number().describe('Footprint center, inches from the left wall (x=0). For "wall" components this is IGNORED — it\'s auto-computed so the item sits flush against the wall.'),
-  y: z.number().describe('Base height, inches. 0 = that plane\'s floor (van floor for "floor", roof surface for "roof", van floor underside for "underbody", height on the door panel for "door"), where negative values go further down. IGNORED for "ceiling" components — y is auto-derived so the top hugs the ceiling / the item above.'),
-  z: z.number().describe('Footprint center, inches from the front/cab wall (z=0). For "door" components this is IGNORED — it\'s auto-computed so the item sits flush against the door; pass x/y as if the door were closed.'),
+  x: z.number().describe('Footprint center, millimeters (mm) from the left wall (x=0). For "wall" components this is IGNORED — it\'s auto-computed so the item sits flush against the wall.'),
+  y: z.number().describe('Base height, millimeters (mm). 0 = that plane\'s floor (van floor for "floor", roof surface for "roof", van floor underside for "underbody", height on the door panel for "door"), where negative values go further down. IGNORED for "ceiling" components — y is auto-derived so the top hugs the ceiling / the item above.'),
+  z: z.number().describe('Footprint center, millimeters (mm) from the front/cab wall (z=0). For "door" components this is IGNORED — it\'s auto-computed so the item sits flush against the door; pass x/y as if the door were closed.'),
   doorId: doorIdSchema.optional().describe('Which rear door panel to mount on — only used when the component\'s mountSurface is "door" (defaults to "rear-left" if omitted). Ignored otherwise. An item can\'t straddle both panels.'),
   wallSide: wallSideSchema.optional().describe('Which interior side wall to mount on — only used when the component\'s mountSurface is "wall" (defaults to "left" if omitted). Ignored otherwise.'),
   rotation: rotationSchema.optional().default(0).describe('Yaw in degrees, one of 0/90/180/270.'),
@@ -287,7 +287,7 @@ export function createVanBuilderServer(): McpServer {
 
   server.tool(
     'list_catalog',
-    'List every component type in the catalog (id, name, category, dimensions in inches, ' +
+    'List every component type in the catalog (id, name, category, dimensions in millimeters (mm), ' +
       'mount surface, and overlap group). Call this first to get real componentId values before ' +
       'placing anything — place_item/place_items need an id from here, not a name.',
     {},
@@ -320,7 +320,7 @@ export function createVanBuilderServer(): McpServer {
       'of conflicts (collisions, out-of-bounds, cab-zone obstacles) — the same conflict detection ' +
       'the app itself uses. Coordinate frame: x = across width (0 = left wall), y = up (0 = van ' +
       'floor; negative = below floor on the underbody plane), z = along length (0 = front/cab wall). ' +
-      'Units are inches. A placed item\'s x/z is its footprint CENTER (stable under rotation); y is ' +
+      'Units are millimeters (mm) — the MCP contract is mm, never inches. A placed item\'s x/z is its footprint CENTER (stable under rotation); y is ' +
       'its BASE height on whichever plane it mounts to (floor/roof/underbody); for "ceiling" items y is derived (top pressed against the ceiling or the item above), not chosen.',
     {},
     async (): Promise<CallToolResult> => {
@@ -345,7 +345,7 @@ export function createVanBuilderServer(): McpServer {
       name: z.string().min(1),
       category: categorySchema,
       dims: z.object({ w: z.number().positive(), d: z.number().positive(), h: z.number().positive() })
-        .describe('Footprint at rotation 0, inches: w = across width, d = along length, h = up.'),
+        .describe('Footprint at rotation 0, millimeters (mm): w = across width, d = along length, h = up.'),
       mountSurface: mountSurfaceSchema.optional().describe(
         'Defaults to "floor" if omitted. "ceiling" hangs INSIDE the van from above: it can be placed anywhere in x/z but its y is derived so its top always hugs the finished ceiling, or the underside of whatever floor-plane item is directly above it (e.g. a raised lift bed) — and it follows that item if it moves. It collides with interior items like any floor item. "door" mounts to a rear door panel — it swings open with the ' +
           'door in the 3D view and is auto-clamped flush against it (see place_item\'s doorId param). "wall" mounts to an interior side wall — items are flush against the wall surface.'
@@ -569,7 +569,7 @@ export function createVanBuilderServer(): McpServer {
 
   server.tool(
     'get_clearances',
-    'Get the distance in inches from a placed item to the nearest obstacle or envelope wall in each ' +
+    'Get the distance in millimeters (mm) from a placed item to the nearest obstacle or envelope wall in each ' +
       'of the 6 directions (left/right = across width, forward/back = toward cab/rear, up/down = ' +
       'height) — the exact same swept-distance query the app\'s toggleable clearance gauges show. Use ' +
       'this to verify practical operating room (walkway width, room to open a door/drawer, headroom) ' +
@@ -597,7 +597,7 @@ export function createVanBuilderServer(): McpServer {
     'Patch the van shell — interior length/width/height, wall framing + insulation thickness, ' +
       'ceiling framing, floor build-up, cab depth/seat size, rear/side door dimensions, roof/' +
       'underbody clearance, and wheel-well cutout size/position (a floor build-exclusion zone, same ' +
-      'treatment as the cab zone). All fields optional; only what you pass changes. All values in inches.',
+      'treatment as the cab zone). All fields optional; only what you pass changes. All values in millimeters (mm).',
     {
       name: z.string().optional(),
       interiorLength: z.number().positive().optional(),

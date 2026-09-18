@@ -1,8 +1,8 @@
 import type { ComponentDef, Dims, DoorId, MountSurface, OverlapMatrix, PlacedInstance, VanShell, Vec3, WallSide } from './types';
 
-/** Rear door panel thickness (inches) — shared with VanFeaturesMesh so the
+/** Rear door panel thickness (mm) — shared with VanFeaturesMesh so the
  * 3D door geometry and the door-mount placement math never drift apart. */
-export const REAR_DOOR_THICKNESS = 1.5;
+export const REAR_DOOR_THICKNESS = 38;
 
 /** Rear door swing-open angle (degrees) — shared with VanFeaturesMesh. */
 export const REAR_DOOR_OPEN_ANGLE_DEG = 100;
@@ -472,7 +472,7 @@ export interface Violation {
 // ---------------------------------------------------------------------------
 
 export interface Clearances {
-  left: number; // -X, inches
+  left: number; // -X, mm
   right: number; // +X
   up: number; // +Y
   down: number; // -Y
@@ -747,7 +747,7 @@ export function clamp(v: number, lo: number, hi: number): number {
   return Math.min(Math.max(v, lo), Math.min(hi, Math.max(lo, hi)));
 }
 
-/** Snap a position to a grid increment (inches). */
+/** Snap a position to a grid increment (mm). */
 export function snap(v: number, grid: number): number {
   if (grid <= 0) return v;
   return Math.round(v / grid) * grid;
@@ -912,7 +912,7 @@ export function findNearestValidPosition(
   defsById: Record<string, ComponentDef>,
   shell: VanShell,
   matrix: OverlapMatrix,
-  stepIn = 2
+  stepIn = 50 // mm — was 2 in
 ): Vec3 | null {
   const surface = surfaceOf(targetDef);
   if (surface === 'door') {
@@ -990,7 +990,7 @@ export function findNearestValidPosition(
   if (isCeiling) return null; // no other heights to try — Y isn't ours to choose
 
   // Last resort: sweep other floor heights too (rare — very cluttered van).
-  const yStep = Math.max(stepIn, Math.min(dims.h, 6));
+  const yStep = Math.max(stepIn, Math.min(dims.h, 150)); // mm — the 6-in cap was
   for (let y = minY; y <= maxY + 1e-6; y += yStep) {
     for (let x = minCx; x <= maxCx + 1e-6; x += stepIn * 2) {
       for (let z = minCz; z <= maxCz + 1e-6; z += stepIn * 2) {

@@ -1,4 +1,4 @@
-// All linear units are INCHES. Angles in degrees (yaw only, snapped to 90s).
+// All linear units are MILLIMETERS (mm). Angles in degrees (yaw only, snapped to 90s).
 // Coordinate frame: x = across width (0 = interior left wall), y = up from
 // interior floor, z = along length (0 = interior front / cab-facing wall).
 
@@ -323,7 +323,9 @@ export type CameraView =
 export type OverlapMatrix = Record<string, Record<string, boolean>>;
 
 export interface ProjectState {
-  version: 1;
+  /* Schema version: 1 = legacy (inches), 2 = millimeters. Missing/unversioned
+   * data is treated as legacy inches and auto-migrated on load. */
+  version: number;
   shell: VanShell;
   defs: ComponentDef[];
   instances: PlacedInstance[];

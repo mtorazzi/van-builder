@@ -54,8 +54,8 @@ function CabSeat({
   depth: number;
   height: number;
 }) {
-  const backThickness = Math.min(4, depth * 0.25);
-  const seatHeight = Math.min(18, height * 0.45);
+  const backThickness = Math.min(100, depth * 0.25); // mm (was 4 in)
+  const seatHeight = Math.min(450, height * 0.45); // mm (was 18 in)
 
   const backGeo = useMemo(() => new THREE.BoxGeometry(width, height, backThickness), [width, height, backThickness]);
   const seatGeo = useMemo(
@@ -134,9 +134,9 @@ export default function VanFeaturesMesh({
   const cabGeo = useMemo(() => new THREE.BoxGeometry(cabW, cabH, cabD), [cabW, cabH, cabD]);
   const wheelWellZones = computeWheelWellZones(shell);
 
-  const sideDoorX = shell.sideDoorSide === 'left' ? -0.75 : shell.interiorWidth + 0.75;
+  const sideDoorX = shell.sideDoorSide === 'left' ? -19 : shell.interiorWidth + 19; // mm (was +-0.75 in)
   const sideDoorGeo = useMemo(
-    () => new THREE.BoxGeometry(1.5, shell.sideDoorHeight, shell.sideDoorWidth),
+    () => new THREE.BoxGeometry(38, shell.sideDoorHeight, shell.sideDoorWidth),
     [shell.sideDoorHeight, shell.sideDoorWidth]
   );
   // Closed: flush over the opening. Open: slid backward along its track,

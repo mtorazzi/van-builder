@@ -9,7 +9,7 @@ const HOLD_REPEAT_MS = 120;
 /** Press-and-hold-to-repeat for the D-pad/Up/Down buttons: fires `onStep`
  * once immediately on press, then keeps firing on an interval while held,
  * so a long press walks the item across the room instead of needing one
- * click per 0.5" step. Falls back to a plain onClick for keyboard
+ * click per 5 mm step. Falls back to a plain onClick for keyboard
  * activation (Enter/Space don't emit pointer events), guarded so a real
  * pointer click doesn't double-fire. */
 function useHoldRepeat(onStep: () => void) {
@@ -183,7 +183,7 @@ export default function InspectorPanel() {
               </div>
             )}
 
-            <div className="hint">Move (± {GRID_SNAP}") — floor plane, and height</div>
+            <div className="hint">Move (± {GRID_SNAP} mm) — floor plane, and height</div>
             <div className="dpad-row">
               <div className="dpad">
                 <button className="dpad-btn dpad-fwd" title="Forward (hold to keep moving)" {...fwdHold}>

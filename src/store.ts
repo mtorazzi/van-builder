@@ -93,7 +93,7 @@ function loadInitial(): Pick<StoreState, 'shell' | 'defs' | 'instances' | 'overl
 
 function persist(state: Pick<StoreState, 'shell' | 'defs' | 'instances' | 'overlapMatrix'>) {
   const project: ProjectState = {
-    version: 1,
+    version: ops.PROJECT_SCHEMA_VERSION,
     shell: state.shell,
     defs: state.defs,
     instances: state.instances,
@@ -110,7 +110,7 @@ function persist(state: Pick<StoreState, 'shell' | 'defs' | 'instances' | 'overl
  * projectOps.ts functions (which only know about ProjectState, not the
  * store's UI-only fields like selectedInstanceId). */
 function toProject(s: Pick<StoreState, 'shell' | 'defs' | 'instances' | 'overlapMatrix'>): ProjectState {
-  return { version: 1, shell: s.shell, defs: s.defs, instances: s.instances, overlapMatrix: s.overlapMatrix };
+  return { version: ops.PROJECT_SCHEMA_VERSION, shell: s.shell, defs: s.defs, instances: s.instances, overlapMatrix: s.overlapMatrix };
 }
 
 export const useStore = create<StoreState>((set, get) => ({

@@ -3,13 +3,13 @@ import { computeEnvelope } from '../geometry';
 import type { VanShell } from '../types';
 
 const FIELDS: { key: keyof VanShell; label: string; step?: number }[] = [
-  { key: 'interiorLength', label: 'Interior length (front-back)' },
-  { key: 'interiorWidth', label: 'Interior width (wall-wall)' },
-  { key: 'interiorHeight', label: 'Interior height (floor-ceiling)' },
-  { key: 'wallFramingThickness', label: 'Wall scaffold/framing', step: 0.25 },
-  { key: 'insulationThickness', label: 'Insulation thickness', step: 0.25 },
-  { key: 'ceilingFramingThickness', label: 'Ceiling framing + insulation', step: 0.25 },
-  { key: 'floorBuildUpThickness', label: 'Floor build-up', step: 0.25 },
+  { key: 'interiorLength', label: 'Interior length (front-back)', step: 25 },
+  { key: 'interiorWidth', label: 'Interior width (wall-wall)', step: 25 },
+  { key: 'interiorHeight', label: 'Interior height (floor-ceiling)', step: 25 },
+  { key: 'wallFramingThickness', label: 'Wall scaffold/framing', step: 5 },
+  { key: 'insulationThickness', label: 'Insulation thickness', step: 5 },
+  { key: 'ceilingFramingThickness', label: 'Ceiling framing + insulation', step: 5 },
+  { key: 'floorBuildUpThickness', label: 'Floor build-up', step: 5 },
 ];
 
 export default function VanDimensionsPanel() {

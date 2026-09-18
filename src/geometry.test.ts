@@ -42,18 +42,19 @@ describe('physicalPlane', () => {
 
 describe('aabbIntersects', () => {
   it('detects overlapping boxes and ignores separated ones', () => {
-    const a = { minX: 0, maxX: 10, minY: 0, maxY: 10, minZ: 0, maxZ: 10 };
-    const b = { minX: 5, maxX: 15, minY: 0, maxY: 10, minZ: 0, maxZ: 10 };
-    const c = { minX: 20, maxX: 30, minY: 0, maxY: 10, minZ: 0, maxZ: 10 };
+    const a = { minX: 0, maxX: 250, minY: 0, maxY: 250, minZ: 0, maxZ: 250 };
+    const b = { minX: 125, maxX: 375, minY: 0, maxY: 250, minZ: 0, maxZ: 250 };
+    const c = { minX: 500, maxX: 750, minY: 0, maxY: 250, minZ: 0, maxZ: 250 };
     expect(aabbIntersects(a, b)).toBe(true);
     expect(aabbIntersects(a, c)).toBe(false);
   });
 });
 
 describe('snap / clamp', () => {
-  it('snaps to a half-inch grid and clamps into range', () => {
-    expect(snap(10.24, 0.5)).toBe(10);
-    expect(snap(10.26, 0.5)).toBe(10.5);
+  it('snaps to the 5 mm grid and clamps into range', () => {
+    expect(snap(10.24, 5)).toBe(10);
+    expect(snap(10.26, 5)).toBe(10);
+    expect(snap(13.4, 5)).toBe(15);
     expect(clamp(5, 0, 10)).toBe(5);
     expect(clamp(-1, 0, 10)).toBe(0);
     expect(clamp(99, 0, 10)).toBe(10);
@@ -80,24 +81,24 @@ describe('ceiling hang', () => {
     name: 'Rail',
     category: 'other',
     standard: true,
-    dims: { w: 10, d: 10, h: 4 },
+    dims: { w: 250, d: 250, h: 100 },
     mountSurface: 'ceiling',
   };
   const target: PlacedInstance = {
     id: 'a',
     defId: 'rail',
-    pos: { x: 30, y: 50, z: 80 },
+    pos: { x: 762, y: 1270, z: 2032 },
     rotationY: 0,
   };
 
   it('hangs from the interior ceiling when nothing is above', () => {
-    const hang = ceilingHangY(DEFAULT_SHELL, def.dims, 30, 80, target, def, [], { rail: def });
+    const hang = ceilingHangY(DEFAULT_SHELL, def.dims, 762, 2032, target, def, [], { rail: def });
     const env = computeEnvelope(DEFAULT_SHELL);
     expect(hang).toBe(env.maxY);
   });
 
   it('clampToCeiling sets Y so the top is pressed against the hang height', () => {
-    const pos = clampToCeiling(DEFAULT_SHELL, def.dims, { x: 30, y: 0, z: 80 }, target, def, [], {
+    const pos = clampToCeiling(DEFAULT_SHELL, def.dims, { x: 762, y: 0, z: 2032 }, target, def, [], {
       rail: def,
     });
     const env = computeEnvelope(DEFAULT_SHELL);
@@ -112,13 +113,13 @@ describe('findNearestValidPosition', () => {
       name: 'Box',
       category: 'storage',
       standard: true,
-      dims: { w: 12, d: 12, h: 12 },
+      dims: { w: 300, d: 300, h: 300 },
       mountSurface: 'floor',
     };
     const inst: PlacedInstance = {
       id: 'b1',
       defId: 'box',
-      pos: { x: 200, y: 1.5, z: 200 },
+      pos: { x: 5080, y: 38, z: 5080 },
       rotationY: 0,
     };
     const found = findNearestValidPosition(
@@ -128,7 +129,7 @@ describe('findNearestValidPosition', () => {
       { box: boxDef },
       DEFAULT_SHELL,
       {},
-      4
+      100
     );
     expect(found).not.toBeNull();
     const env = computeEnvelope(DEFAULT_SHELL);
@@ -144,7 +145,7 @@ describe('wall mount surface', () => {
   });
 
   it('computeWallEnvelope returns correct bounds for left wall', () => {
-    const itemWidth = 6;
+    const itemWidth = 150; // mm
     const env = computeWallEnvelope(DEFAULT_SHELL, 'left', itemWidth);
     const wallEat = DEFAULT_SHELL.wallFramingThickness + DEFAULT_SHELL.insulationThickness;
     expect(env.minX).toBe(wallEat);
@@ -154,7 +155,7 @@ describe('wall mount surface', () => {
   });
 
   it('computeWallEnvelope returns correct bounds for right wall', () => {
-    const itemWidth = 6;
+    const itemWidth = 150; // mm
     const env = computeWallEnvelope(DEFAULT_SHELL, 'right', itemWidth);
     const wallEat = DEFAULT_SHELL.wallFramingThickness + DEFAULT_SHELL.insulationThickness;
     expect(env.maxX).toBe(DEFAULT_SHELL.interiorWidth - wallEat);
@@ -162,7 +163,7 @@ describe('wall mount surface', () => {
   });
 
   it('requiredWallTouchX returns the correct X for flush mounting', () => {
-    const itemWidth = 10;
+    const itemWidth = 254; // mm
     const wallEat = DEFAULT_SHELL.wallFramingThickness + DEFAULT_SHELL.insulationThickness;
     const leftX = requiredWallTouchX(DEFAULT_SHELL, 'left', itemWidth);
     expect(leftX).toBe(wallEat + itemWidth / 2);
@@ -171,8 +172,8 @@ describe('wall mount surface', () => {
   });
 
   it('clampToWall constrains position to wall bounds and sets X flush', () => {
-    const dims = { w: 8, d: 6, h: 10 };
-    const pos = { x: 50, y: 100, z: 500 };
+    const dims = { w: 200, d: 150, h: 250 };
+    const pos = { x: 1270, y: 2540, z: 12700 };
     const clamped = clampToWall(DEFAULT_SHELL, 'left', dims, pos);
     const wallEat = DEFAULT_SHELL.wallFramingThickness + DEFAULT_SHELL.insulationThickness;
     expect(clamped.x).toBe(wallEat + dims.w / 2);
@@ -186,13 +187,13 @@ describe('wall mount surface', () => {
       name: 'Wall Panel',
       category: 'other',
       standard: true,
-      dims: { w: 4, d: 6, h: 8 },
+      dims: { w: 100, d: 150, h: 200 },
       mountSurface: 'wall',
     };
     const inst: PlacedInstance = {
       id: 'w1',
       defId: 'panel',
-      pos: { x: 50, y: 20, z: 80 },
+      pos: { x: 1270, y: 508, z: 2032 },
       rotationY: 0,
       wallSide: 'left',
     };
@@ -203,7 +204,7 @@ describe('wall mount surface', () => {
       { panel: wallDef },
       DEFAULT_SHELL,
       {},
-      4
+      100
     );
     expect(found).not.toBeNull();
     const wallEat = DEFAULT_SHELL.wallFramingThickness + DEFAULT_SHELL.insulationThickness;

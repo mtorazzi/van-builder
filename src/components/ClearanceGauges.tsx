@@ -5,7 +5,7 @@ import { useStore } from '../store';
 import { computeClearances, instanceAABB } from '../geometry';
 
 const GAUGE_COLOR = '#ffffff';
-const MIN_VISIBLE = 0.05; // inches — anything smaller isn't worth drawing
+const MIN_VISIBLE = 1; // mm (was 0.05 in) — anything smaller isn't worth drawing
 
 function GaugeLine({
   from,

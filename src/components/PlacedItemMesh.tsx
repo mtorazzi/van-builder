@@ -31,7 +31,7 @@ export default function PlacedItemMesh({ instance, def, selected, violating }: P
     [def.dims.w, def.dims.h, def.dims.d]
   );
 
-  const portGeo = useMemo(() => new THREE.SphereGeometry(1.4, 12, 8), []);
+  const portGeo = useMemo(() => new THREE.SphereGeometry(36, 12, 8), []); // mm (was 1.4 in)
 
   const isDoor = def.mountSurface === 'door';
   const isCeiling = def.mountSurface === 'ceiling';
@@ -120,7 +120,7 @@ export default function PlacedItemMesh({ instance, def, selected, violating }: P
             </mesh>
           ))}
           {showLabels && (
-            <Html position={[0, isCeiling ? -3 : def.dims.h + 3, 0]} center distanceFactor={80} zIndexRange={[0, 0]}>
+            <Html position={[0, isCeiling ? -76 : def.dims.h + 76, 0]} center distanceFactor={80} zIndexRange={[0, 0]}>
               <div
                 style={{
                   padding: '2px 6px',
