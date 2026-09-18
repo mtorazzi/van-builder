@@ -43,7 +43,7 @@ function CameraRig({
       (sceneMinY + sceneMaxY) / 2,
       (floorEnv.minZ + floorEnv.maxZ) / 2
     );
-    const size = Math.max(floorEnv.width, floorEnv.length, sceneMaxY - sceneMinY, 40);
+    const size = Math.max(floorEnv.width, floorEnv.length, sceneMaxY - sceneMinY, 1000);
     const dist = size * 1.6;
     let target = center;
 
@@ -72,7 +72,7 @@ function CameraRig({
           (roofEnv.minY + roofEnv.maxY) / 2,
           (roofEnv.minZ + roofEnv.maxZ) / 2
         );
-        const roofDist = Math.max(roofEnv.width, roofEnv.length, 30) * 1.5;
+        const roofDist = Math.max(roofEnv.width, roofEnv.length, 800) * 1.5;
         camera.position.set(roofCenter.x, roofCenter.y + roofDist, roofCenter.z + 0.001);
         target = roofCenter;
         break;
@@ -83,7 +83,7 @@ function CameraRig({
           (underbodyEnv.minY + underbodyEnv.maxY) / 2,
           (underbodyEnv.minZ + underbodyEnv.maxZ) / 2
         );
-        const ubDist = Math.max(underbodyEnv.width, underbodyEnv.length, 30) * 1.5;
+        const ubDist = Math.max(underbodyEnv.width, underbodyEnv.length, 800) * 1.5;
         camera.position.set(ubCenter.x, ubCenter.y - ubDist, ubCenter.z + 0.001);
         target = ubCenter;
         break;
@@ -134,21 +134,21 @@ export default function Scene() {
     (underbodyEnv.minY + roofEnv.maxY) / 2,
     (floorEnv.minZ + floorEnv.maxZ) / 2,
   ];
-  const camDistance = Math.max(floorEnv.width, floorEnv.length, 80) * 1.4;
+  const camDistance = Math.max(floorEnv.width, floorEnv.length, 2000) * 1.4;
 
   return (
     <Canvas
       camera={{
         position: [target[0] + camDistance * 0.5, target[1] + camDistance * 0.5, target[2] + camDistance * 0.8],
         fov: 50,
-        near: 0.1,
-        far: 4000,
+        near: 1,
+        far: 60000,
       }}
       onPointerMissed={() => selectInstance(null)}
     >
       <ambientLight intensity={0.7} />
-      <directionalLight position={[100, 200, 100]} intensity={0.8} />
-      <directionalLight position={[-100, 100, -100]} intensity={0.3} />
+      <directionalLight position={[2500, 5000, 2500]} intensity={0.8} />
+      <directionalLight position={[-2500, 2500, -2500]} intensity={0.3} />
 
       <VanShellMesh shell={shell} />
       <VanFeaturesMesh shell={shell} doorsOpen={doorsOpen} />
@@ -172,7 +172,7 @@ export default function Scene() {
       <ClearanceGauges />
 
       <CameraRig floorEnv={floorEnv} roofEnv={roofEnv} underbodyEnv={underbodyEnv} controlsRef={controlsRef} />
-      <OrbitControls ref={controlsRef} makeDefault target={target} minDistance={20} maxDistance={800} />
+      <OrbitControls ref={controlsRef} makeDefault target={target} minDistance={200} maxDistance={25000} />
     </Canvas>
   );
 }
